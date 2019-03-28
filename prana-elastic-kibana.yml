@@ -1,0 +1,59 @@
+version: '3'
+services:
+  eureka:
+    image: netflixoss/eureka:1.3.1
+    container_name: eureka
+    ports:
+      - 8080:8080
+    networks:
+      - elastic
+
+  prana-elastic:
+    image: joakimfristedt/prana
+    container_name: prana-elastic
+    ports:
+      - 8078
+    networks:
+      - elastic
+    environment:
+      - EUREKA_NAME=elasticsearch
+      - EUREKA_PORT=9200
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.1
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+    networks:
+      - elastic
+    environment:
+      - discovery.type=single-node 
+      - cluster.name=elastic
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.6.1
+    container_name: kibana
+    ports:
+      - 5601:5601
+    networks:
+      - elastic
+
+  prana-kibana:
+    image: joakimfristedt/prana
+    container_name: prana-kibana
+    ports:
+      - 8078
+    networks:
+      - elastic
+    environment:
+      - EUREKA_NAME=kibana
+      - EUREKA_PORT=5601
+
+networks:
+  elastic:
+
+volumes:
+  elastic-data:
